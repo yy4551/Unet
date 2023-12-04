@@ -11,7 +11,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 dropout_rate = 0.3
-num_organ = 13
+num_organ = 1
 
 
 # 定义单个3D FCN
@@ -34,7 +34,7 @@ class ResUNet(nn.Module):
             nn.Conv3d(inchannel, 16, 3, 1, padding=1),
             nn.PReLU(16),
         )
-
+        # concatenate ?
         self.encoder_stage2 = nn.Sequential(
             nn.Conv3d(32, 32, 3, 1, padding=1),
             nn.PReLU(32),
@@ -111,12 +111,14 @@ class ResUNet(nn.Module):
         )
 
         self.down_conv3 = nn.Sequential(
-            nn.Conv3d(64, 128, 2, 2),
+            nn.Conv3d(64, 128, 1, 1),
+            #nn.Conv3d(64, 128, 2, 2),
             nn.PReLU(128)
         )
 
         self.down_conv4 = nn.Sequential(
             nn.Conv3d(128, 256, 3, 1, padding=1),
+            # nn.Conv3d(128, 256, 3, 1, padding=1),
             nn.PReLU(256)
         )
 
@@ -139,7 +141,7 @@ class ResUNet(nn.Module):
 
     def forward(self, inputs):
 
-        if self.stage is 'stage1':
+        if self.stage == 'stage1':
             long_range1 = self.encoder_stage1(inputs) + inputs
         else:
             long_range1 = self.encoder_stage1(inputs)
@@ -203,11 +205,11 @@ class Net(nn.Module):
         共18656348个可训练的参数，一千八百万左右
         """
         # 首先将输入缩小一倍
-        inputs_stage1 = F.upsample(inputs, (48, 128, 128), mode='trilinear')
+        inputs_stage1 = F.upsample(inputs, (4, 78, 96), mode='trilinear')
 
         # 得到第一阶段的结果
         output_stage1 = self.stage1(inputs_stage1)
-        output_stage1 = F.upsample(output_stage1, (48, 256, 256), mode='trilinear')
+        output_stage1 = F.upsample(output_stage1, (8, 156, 192), mode='trilinear')
 
         temp = F.softmax(output_stage1, dim=1)
 
@@ -234,28 +236,29 @@ net = Net(training=True)
 net.apply(init)
 
 # # 输出数据维度检查
-# net = net.cuda()
-# data = torch.randn((1, 1, 48, 256, 256)).cuda()
-#
-# with torch.no_grad():
-#     res = net(data)
-#
-# for item in res:
-#     print(item.size())
-#
-# # 计算网络参数
-# num_parameter = .0
-# for item in net.modules():
-#
-#     if isinstance(item, nn.Conv3d) or isinstance(item, nn.ConvTranspose3d):
-#         num_parameter += (item.weight.size(0) * item.weight.size(1) *
-#                           item.weight.size(2) * item.weight.size(3) * item.weight.size(4))
-#
-#         if item.bias is not None:
-#             num_parameter += item.bias.size(0)
-#
-#     elif isinstance(item, nn.PReLU):
-#         num_parameter += item.num_parameters
-#
-#
-# print(num_parameter)
+if __name__ == "__main__":
+    net = net.cuda()
+    data = torch.randn((1, 1, 8, 156, 192)).cuda()
+
+    with torch.no_grad():
+        res = net(data)
+
+    for item in res:
+        print(item.size())
+
+    # 计算网络参数
+    num_parameter = .0
+    for item in net.modules():
+
+        if isinstance(item, nn.Conv3d) or isinstance(item, nn.ConvTranspose3d):
+            num_parameter += (item.weight.size(0) * item.weight.size(1) *
+                              item.weight.size(2) * item.weight.size(3) * item.weight.size(4))
+
+            if item.bias is not None:
+                num_parameter += item.bias.size(0)
+
+        elif isinstance(item, nn.PReLU):
+            num_parameter += item.num_parameters
+
+
+    print(num_parameter)

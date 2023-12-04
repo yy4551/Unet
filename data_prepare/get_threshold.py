@@ -8,8 +8,9 @@ import os
 import SimpleITK as sitk
 
 
-ct_path = '/home/zcy/Desktop/dataset/multi-organ/test/CT'
-seg_path = '/home/zcy/Desktop/dataset/multi-organ/test/GT'
+ct_path = r'C:\Git\DataSet\abdomen\averaged-training-images'
+seg_path = r'C:\Git\DataSet\abdomen\averaged-training-labels'
+# seg_path = '/home/zcy/Desktop/dataset/multi-organ/test/GT'
 
 # 定于阈值
 upper = 350
@@ -24,21 +25,34 @@ for ct_file in os.listdir(ct_path):
     ct = sitk.ReadImage(os.path.join(ct_path, ct_file), sitk.sitkInt16)
     ct_array = sitk.GetArrayFromImage(ct)
 
-    seg = sitk.ReadImage(os.path.join(seg_path, ct_file.replace('img', 'label')), sitk.sitkInt8)
+    seg = sitk.ReadImage(os.path.join(seg_path, ct_file.replace('avg', 'avg_seg')), sitk.sitkInt8)
     seg_array = sitk.GetArrayFromImage(seg)
 
-    # 选取属于器官的体素
+    # True in seg as a whole is ROI
+    # 选取属于ROI的体素
     organ_roi = ct_array[seg_array > 0]
 
+    # This part creates a boolean mask where each element is True if
+    # the corresponding voxel value in organ_roi is within the specified range (lower to upper).
+    # The * operator performs element-wise multiplication of the two boolean arrays.
+
+    #.astype(int): This converts the boolean array to an integer array,
+    # where True is represented as 1 and False as 0.
+
+    #.sum(): Finally, this calculates the sum of the integer array,
+    # giving the total number of inliers within the specified range.
+
+    #use upper&lower to crop ROI pixel-wise,all the lefted is inliers
     inliers = ((organ_roi <= upper) * (organ_roi >= lower)).astype(int).sum()
 
-    print('{:.4}%'.format(inliers / organ_roi.shape[0] * 100))
+    # inliers/ROI = percentage of remain of ROI
+    print('one:{:.4}%'.format(inliers / organ_roi.shape[0] * 100))
     print('------------')
 
     num_point += organ_roi.shape[0]
     num_inlier += inliers
 
-print(num_inlier / num_point)
+print(f"two:{num_inlier / num_point}")
 
 # ±200的阈值对于肝脏：训练集93.8%
 # ±250的阈值对于肿瘤：训练集96.3%

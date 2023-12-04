@@ -94,6 +94,7 @@ worksheet.write(15, 0, 'shape')
 
 
 # 定义网络并加载参数
+# training=False here is mainly for BN and Dropout
 net = torch.nn.DataParallel(Net(training=False)).cuda()
 net.load_state_dict(torch.load(module_dir))
 net.eval()
@@ -109,31 +110,31 @@ for file_index, file in enumerate(os.listdir(val_ct_dir)):
     ct_array = sitk.GetArrayFromImage(ct)
 
     # 将灰度值在阈值之外的截断掉
-    ct_array[ct_array > upper] = upper
-    ct_array[ct_array < lower] = lower
+    # ct_array[ct_array > upper] = upper
+    # ct_array[ct_array < lower] = lower
 
     # 对CT使用双三次算法进行插值，插值之后的array依然是int16
-    ct_array = ndimage.zoom(ct_array, (ct.GetSpacing()[-1] / slice_thickness, down_scale, down_scale), order=3)
+    # ct_array = ndimage.zoom(ct_array, (ct.GetSpacing()[-1] / slice_thickness, down_scale, down_scale), order=3)
 
     # 在轴向上进行切块取样
-    flag = False
-    start_slice = 0
-    end_slice = start_slice + size - 1
-    ct_array_list = []
-
-    while end_slice <= ct_array.shape[0] - 1:
-        ct_array_list.append(ct_array[start_slice:end_slice + 1, :, :])
-
-        start_slice = end_slice + 1
-        end_slice = start_slice + size - 1
-
-    # 当无法整除的时候反向取最后一个block
-    if end_slice is not ct_array.shape[0] - 1:
-        flag = True
-        count = ct_array.shape[0] - start_slice
-        ct_array_list.append(ct_array[-size:, :, :])
-
-    outputs_list = []
+    # flag = False
+    # start_slice = 0
+    # end_slice = start_slice + size - 1
+    # ct_array_list = []
+    #
+    # while end_slice <= ct_array.shape[0] - 1:
+    #     ct_array_list.append(ct_array[start_slice:end_slice + 1, :, :])
+    #
+    #     start_slice = end_slice + 1
+    #     end_slice = start_slice + size - 1
+    #
+    # # 当无法整除的时候反向取最后一个block
+    # if end_slice is not ct_array.shape[0] - 1:
+    #     flag = True
+    #     count = ct_array.shape[0] - start_slice
+    #     ct_array_list.append(ct_array[-size:, :, :])
+    #
+    # outputs_list = []
     with torch.no_grad():
         for ct_array in ct_array_list:
 

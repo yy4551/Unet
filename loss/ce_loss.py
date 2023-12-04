@@ -5,7 +5,7 @@
 
 import torch.nn as nn
 
-num_organ = 13
+num_organ = 1
 
 
 class CELoss(nn.Module):
@@ -24,9 +24,9 @@ class CELoss(nn.Module):
 
         # 计算交叉熵损失值
         loss_stage1 = self.loss(pred_stage1, target)
-        loss_stage2 = self.loss(pred_stage2, target)
+        # loss_stage2 = self.loss(pred_stage2, target)
 
         # 最终的损失值由两部分组成
-        loss = loss_stage1 + loss_stage2
+        # loss = loss_stage1 + loss_stage2
 
-        return loss
+        return loss_stage1
