@@ -1,0 +1,9 @@
+I had some trouble connecting to GitHub,below is the code that solved my problem.
+
+C:\Users\14392>git config --global --unset http.proxy
+
+C:\Users\14392>set http_proxy=http://new_proxy_address:port
+
+
+C:\Users\14392>git config --global http.proxy 127.0.0.1:7890
+127.0.0.1 and 7890 can be checked from Clash.
