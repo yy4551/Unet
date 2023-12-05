@@ -8,12 +8,7 @@ import random
 import SimpleITK as sitk
 import torch
 from torch.utils.data import Dataset as dataset, ConcatDataset
-from torch.utils.data import DataLoader
 
-on_server = False
-# size = 48
-
-# notice:inherited from "dataset"
 class Dataset(dataset):
 
     # acquire the names of every training and testing image,concatenate each with its directory
@@ -66,7 +61,7 @@ class Dataset(dataset):
 
         return len(self.ct_list)
 
-
+# create to make a dataset which eat in tensor,not useful,should 've just use a list
 class Dataset_take_in_output_tensor(dataset):
     def __init__(self, tensor_list=None):
         if tensor_list is None:
@@ -105,6 +100,5 @@ if __name__ == '__main__':
 
     train_dl = DataLoader(train_ds, batch_size=6, shuffle=True)
     for index, (ct, seg) in enumerate(train_dl):
-
         print(index, ct.size(), seg.size())
         print('----------------')
