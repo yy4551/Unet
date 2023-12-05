@@ -37,7 +37,7 @@ def predict_all(net, test_path, module_path, new_path):
 
 if __name__ == "__main__":
     net = UNet(conv_depth=4,channel_factors=8).cuda()
-    module_path = r"C:\Git\NeuralNetwork\abdominal-multi-organ-segmentation\pth\net75--0.553--0.530.pth"
+    module_path = r"C:\Git\NeuralNetwork\Unet\pth\net100-0.222-0.232.pth"
     test_path = r"C:\Git\DataSet\abdomen\test_zoomed"
     new_path = r"C:\Git\DataSet\abdomen\test_predicted"
     create_path(new_path)

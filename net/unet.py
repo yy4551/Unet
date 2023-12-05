@@ -33,7 +33,7 @@ class UNet(nn.Module):
                 setattr(self, 'ConvT_Cat_Conv%d' % i, ConvT_Cat_Conv)
             else:
                 conv_out =nn.Sequential(nn.ConvTranspose3d(channels[i], channels[i], kernel_size=2, stride=2, padding=0),\
-                            unetConv3(channels[i], 1, self.is_batchnorm))
+                            unetConv3(channels[i], 1, self.is_batchnorm),nn.Threshold(0.4,0,inplace=False))
                 setattr(self, 'conv_out', conv_out)
 
 
@@ -52,8 +52,8 @@ class UNet(nn.Module):
             conv = getattr(self, 'conv%d'%i)
             conv_output = conv(layer_input)
             maxpool_output = self.maxpool(conv_output)
-            logger.info("conv{}:conv_output:{},maxpool_output:{}"
-                        .format(i,conv_output.shape,maxpool_output.shape))
+            # logger.info("conv{}:conv_output:{},maxpool_output:{}"
+            #             .format(i,conv_output.shape,maxpool_output.shape))
             setattr(self, 'conv%d_output'%i, maxpool_output)
             layer_input = maxpool_output
 
@@ -66,7 +66,7 @@ class UNet(nn.Module):
                 conv_out = getattr(self, 'conv_out')
                 up_output = conv_out(layer_input)
 
-            logger.info("up{}:up_output:{} ".format(i,up_output.shape))
+            # logger.info("up{}:up_output:{} ".format(i,up_output.shape))
             layer_input = up_output
 
         return layer_input

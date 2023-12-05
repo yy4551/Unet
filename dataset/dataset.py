@@ -7,7 +7,7 @@ import random
 
 import SimpleITK as sitk
 import torch
-from torch.utils.data import Dataset as dataset
+from torch.utils.data import Dataset as dataset, ConcatDataset
 from torch.utils.data import DataLoader
 
 on_server = False
@@ -67,12 +67,34 @@ class Dataset(dataset):
         return len(self.ct_list)
 
 
+class Dataset_take_in_output_tensor(dataset):
+    def __init__(self, tensor_list=None):
+        if tensor_list is None:
+            tensor_list = []
+        self.tensor_list = tensor_list
+
+    def __len__(self):
+        return len(self.tensor_list)
+
+    def __getitem__(self, index):
+        return self.tensor_list[index]
+
+    def add_tensor(self, new_tensor):
+        self.tensor_list.append(new_tensor)
+
+    def __add__(self, other):
+        if not isinstance(other, Dataset_take_in_output_tensor):
+            raise TypeError('other must be an instance of Dataset_take_in_output_tensor')
+        return ConcatDataset(self.tensor_list + other.tensor_list)
+
+
 
 ct_dir = r'C:\Git\DataSet\abdomen\train_zoomed'
 seg_dir = r'C:\Git\DataSet\abdomen\label_zoomed'
 
 train_ds = Dataset(ct_dir, seg_dir)
-
+output_tensor_pred = Dataset_take_in_output_tensor()
+output_tensor_label = Dataset_take_in_output_tensor()
 
 if __name__ == '__main__':
     # # # 测试代码
