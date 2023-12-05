@@ -50,8 +50,11 @@ class UNet(nn.Module):
                     unetConv3(channels[i], 1, self.is_batchnorm), nn.Threshold(0.4, 0, inplace=False))
                 setattr(self, 'conv_out', conv_out)
 
-        # self.modules() Returns an iterator over immediate children modules, yielding both
-        # the name of the module as well as the module itself.
+        # self.modules() Returns an iterator over immediate children modules, yield both
+        # the name of the module and the module itself.
+
+        # NOTICE:here the init_weights init the instance of net()
+        #        in unetConv3d or unetUp,init_weights init their self.conv and self.convT3d.
         for m in self.modules():
             if isinstance(m, nn.Conv3d):
                 init_weights(m, init_type='kaiming')
@@ -78,7 +81,7 @@ class UNet(nn.Module):
                 up_output = conv_out(layer_input)
 
             # logger.info("up{}:up_output:{} ".format(i,up_output.shape))
-            layer_input = up_output
+            layer_input = up_output # didn't learn namespace well,this code is bad
 
         return layer_input
 
